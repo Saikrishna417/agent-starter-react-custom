@@ -18,6 +18,11 @@ export const Welcome = ({
       inert={disabled}
       className="fixed inset-0 z-10 mx-auto flex h-svh flex-col items-center justify-center text-center"
     >
+      {/* Bosch Logo */}
+      <img src="/bosch_logo_embedded.svg" alt="Bosch Logo" width={180} height={180} className="mb-4" />
+
+      {/* Allion Logo */}
+      <img src="/allion_img.png" alt="Allion Logo" width={250} height={200} className="mb-4" />
       <svg
         width="64"
         height="64"
