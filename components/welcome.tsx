@@ -18,11 +18,23 @@ export const Welcome = ({
       inert={disabled}
       className="fixed inset-0 z-10 mx-auto flex h-svh flex-col items-center justify-center text-center"
     >
-      {/* Bosch Logo */}
-      <img src="/bosch_logo_embedded.svg" alt="Bosch Logo" width={180} height={180} className="mb-4" />
+      <img
+        src="/bosch_logo_embedded.svg"
+        alt="Bosch Logo"
+        width={180}
+        height={180}
+        className="mb-4"
+      />
 
       {/* Allion Logo */}
-      <img src="/allion_img.png" alt="Allion Logo" width={250} height={200} className="mb-4" />
+      <img
+        src="/allion_img.png"
+        alt="Allion Logo"
+        width={250}
+        height={200}
+        className="mb-4"
+      />
+
       <svg
         width="64"
         height="64"
@@ -40,7 +52,12 @@ export const Welcome = ({
       <p className="text-fg1 max-w-prose pt-1 leading-6 font-medium">
         Chat live with your voice AI agent
       </p>
-      <Button variant="primary" size="lg" onClick={onStartCall} className="mt-6 w-64 font-mono">
+      <Button
+        variant="primary"
+        size="lg"
+        onClick={onStartCall}
+        className="mt-6 w-64 font-mono"
+      >
         {startButtonText}
       </Button>
       <p className="text-fg1 m fixed bottom-5 left-1/2 w-full max-w-prose -translate-x-1/2 pt-1 text-xs leading-5 font-normal text-pretty md:text-sm">
