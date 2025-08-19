@@ -22,8 +22,21 @@ export function App({ appConfig }: AppProps) {
   const room = useMemo(() => new Room(), []);
   const [sessionStarted, setSessionStarted] = useState(false);
 
-  // 👇 Language state (default English)
+  // Language state
   const [language, setLanguage] = useState<'en' | 'kn' | 'hi'>('en');
+
+  // 👉 wrap setLanguage so we also push metadata if connected
+  const handleLanguageChange = (lang: 'en' | 'kn' | 'hi') => {
+    setLanguage(lang);
+    // send metadata only if already connected
+    if (room.state === 'connected') {
+      try {
+        room.localParticipant.setMetadata(JSON.stringify({ language: lang }));
+      } catch (e) {
+        console.warn('setMetadata failed:', e);
+      }
+    }
+  };
 
   const { fetchConnectionDetails } = useConnectionDetails();
 
@@ -50,10 +63,16 @@ export function App({ appConfig }: AppProps) {
         room.localParticipant.setMicrophoneEnabled(true, undefined, {
           preConnectBuffer: appConfig.isPreConnectBufferEnabled,
         }),
-        // 👇 pass selected language to backend fetch
-        fetchConnectionDetails(language).then((connectionDetails) =>
-          room.connect(connectionDetails.serverUrl, connectionDetails.participantToken)
-        ),
+        // you can keep passing language to your API if you want, but it's not required for option 2
+        fetchConnectionDetails().then(async (connectionDetails) => {
+          await room.connect(connectionDetails.serverUrl, connectionDetails.participantToken);
+          // ✅ after connect, push the current language once
+          try {
+            room.localParticipant.setMetadata(JSON.stringify({ language }));
+          } catch (e) {
+            console.warn('setMetadata (post-connect) failed:', e);
+          }
+        }),
       ]).catch((error) => {
         if (aborted) return;
         toastAlert({
@@ -77,8 +96,8 @@ export function App({ appConfig }: AppProps) {
         startButtonText={startButtonText}
         onStartCall={() => setSessionStarted(true)}
         disabled={sessionStarted}
-        language={language}                 // 👈 pass language
-        onLanguageChange={setLanguage}     // 👈 callback
+        language={language}
+        onLanguageChange={handleLanguageChange}  // 👈 use the wrapper here
         initial={{ opacity: 0 }}
         animate={{ opacity: sessionStarted ? 0 : 1 }}
         transition={{ duration: 0.5, ease: 'linear', delay: sessionStarted ? 0 : 0.5 }}
@@ -93,7 +112,7 @@ export function App({ appConfig }: AppProps) {
           appConfig={appConfig}
           disabled={!sessionStarted}
           sessionStarted={sessionStarted}
-          language={language}              // 👈 available in session view too
+          language={language}
           initial={{ opacity: 0 }}
           animate={{ opacity: sessionStarted ? 1 : 0 }}
           transition={{
