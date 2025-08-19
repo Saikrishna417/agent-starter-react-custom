@@ -21,12 +21,14 @@ interface AppProps {
 export function App({ appConfig }: AppProps) {
   const room = useMemo(() => new Room(), []);
   const [sessionStarted, setSessionStarted] = useState(false);
+
+  // 👇 Language state (default English)
+  const [language, setLanguage] = useState<'en' | 'kn' | 'hi'>('en');
+
   const { fetchConnectionDetails } = useConnectionDetails();
 
   useEffect(() => {
-    const onDisconnected = () => {
-      setSessionStarted(false);
-    };
+    const onDisconnected = () => setSessionStarted(false);
     const onMediaDevicesError = (error: Error) => {
       toastAlert({
         title: 'Encountered an error with your media devices',
@@ -48,19 +50,12 @@ export function App({ appConfig }: AppProps) {
         room.localParticipant.setMicrophoneEnabled(true, undefined, {
           preConnectBuffer: appConfig.isPreConnectBufferEnabled,
         }),
-        fetchConnectionDetails().then((connectionDetails) =>
+        // 👇 pass selected language to backend fetch
+        fetchConnectionDetails(language).then((connectionDetails) =>
           room.connect(connectionDetails.serverUrl, connectionDetails.participantToken)
         ),
       ]).catch((error) => {
-        if (aborted) {
-          // Once the effect has cleaned up after itself, drop any errors
-          //
-          // These errors are likely caused by this effect rerunning rapidly,
-          // resulting in a previous run `disconnect` running in parallel with
-          // a current run `connect`
-          return;
-        }
-
+        if (aborted) return;
         toastAlert({
           title: 'There was an error connecting to the agent',
           description: `${error.name}: ${error.message}`,
@@ -71,7 +66,7 @@ export function App({ appConfig }: AppProps) {
       aborted = true;
       room.disconnect();
     };
-  }, [room, sessionStarted, fetchConnectionDetails, appConfig.isPreConnectBufferEnabled]);
+  }, [room, sessionStarted, fetchConnectionDetails, appConfig.isPreConnectBufferEnabled, language]);
 
   const { startButtonText } = appConfig;
 
@@ -82,6 +77,8 @@ export function App({ appConfig }: AppProps) {
         startButtonText={startButtonText}
         onStartCall={() => setSessionStarted(true)}
         disabled={sessionStarted}
+        language={language}                 // 👈 pass language
+        onLanguageChange={setLanguage}     // 👈 callback
         initial={{ opacity: 0 }}
         animate={{ opacity: sessionStarted ? 0 : 1 }}
         transition={{ duration: 0.5, ease: 'linear', delay: sessionStarted ? 0 : 0.5 }}
@@ -90,12 +87,13 @@ export function App({ appConfig }: AppProps) {
       <RoomContext.Provider value={room}>
         <RoomAudioRenderer />
         <StartAudio label="Start Audio" />
-        {/* --- */}
+
         <MotionSessionView
           key="session-view"
           appConfig={appConfig}
           disabled={!sessionStarted}
           sessionStarted={sessionStarted}
+          language={language}              // 👈 available in session view too
           initial={{ opacity: 0 }}
           animate={{ opacity: sessionStarted ? 1 : 0 }}
           transition={{
