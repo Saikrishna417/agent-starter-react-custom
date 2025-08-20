@@ -10,13 +10,13 @@ import { Toaster } from 'sonner';
 // 👇 import the component + its props type
 import { SessionView, type SessionViewComponentProps } from '@/components/session-view';
 // If Welcome has typed props, import them too:
-import { Welcome, type WelcomeProps } from '@/components/welcome';
+import { Welcome } from '@/components/welcome';
 
 import useConnectionDetails from '@/hooks/useConnectionDetails';
 import type { AppConfig } from '@/lib/types';
 
 // ✅ Give motion.create your prop types so `language` and handlers are allowed
-const MotionWelcome = motion.create<WelcomeProps>(Welcome);
+const MotionWelcome = motion.create(Welcome);
 const MotionSessionView = motion.create<SessionViewComponentProps>(SessionView);
 
 interface AppProps {
