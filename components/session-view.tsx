@@ -128,7 +128,10 @@ export const SessionView = React.forwardRef<HTMLElement, SessionViewComponentPro
           <motion.div
             key="control-bar"
             initial={{ opacity: 0, translateY: '100%' }}
-            animate={{ opacity: sessionStarted ? 1 : 0, translateY: sessionStarted ? '0%' : '100%' }}
+            animate={{
+              opacity: sessionStarted ? 1 : 0,
+              translateY: sessionStarted ? '0%' : '100%',
+            }}
             transition={{ duration: 0.3, delay: sessionStarted ? 0.5 : 0, ease: 'easeOut' }}
           >
             <div className="relative z-10 mx-auto w-full max-w-2xl">

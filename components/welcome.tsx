@@ -37,7 +37,7 @@ export const Welcome = ({
       </p>
 
       {/* 👇 Language selection buttons with active color */}
-      <div className="flex gap-3 mt-4">
+      <div className="mt-4 flex gap-3">
         <Button
           onClick={() => onLanguageChange('en')}
           className={`px-4 py-2 ${
@@ -70,12 +70,7 @@ export const Welcome = ({
         </Button>
       </div>
 
-      <Button
-        variant="primary"
-        size="lg"
-        onClick={onStartCall}
-        className="mt-6 w-64 font-mono"
-      >
+      <Button variant="primary" size="lg" onClick={onStartCall} className="mt-6 w-64 font-mono">
         {startButtonText}
       </Button>
 

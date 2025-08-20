@@ -3,13 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Room, RoomEvent } from 'livekit-client';
 import { motion } from 'motion/react';
+import { Toaster } from 'sonner';
 import { RoomAudioRenderer, RoomContext, StartAudio } from '@livekit/components-react';
 import { toastAlert } from '@/components/alert-toast';
-import { Toaster } from 'sonner';
-
 import { SessionView } from '@/components/session-view';
 import { Welcome } from '@/components/welcome';
-
 import useConnectionDetails from '@/hooks/useConnectionDetails';
 import type { AppConfig } from '@/lib/types';
 
