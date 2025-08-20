@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Track } from 'livekit-client';
 import { AnimatePresence, motion } from 'motion/react';
+import type { MotionProps, Transition } from 'motion/react';
 import {
   type TrackReference,
   useLocalParticipant,
@@ -16,25 +17,20 @@ const MotionVideoTile = motion.create(VideoTile);
 const MotionAgentTile = motion.create(AgentTile);
 const MotionAvatarTile = motion.create(AvatarTile);
 
+// Keep only initial/animate/exit here. We'll pass `transition` separately.
+// Using `satisfies` preserves literal types and validates against MotionProps.
 const animationProps = {
-  initial: {
-    opacity: 0,
-    scale: 0,
-  },
-  animate: {
-    opacity: 1,
-    scale: 1,
-  },
-  exit: {
-    opacity: 0,
-    scale: 0,
-  },
-  transition: {
-    type: 'spring',
-    stiffness: 675,
-    damping: 75,
-    mass: 1,
-  },
+  initial: { opacity: 0, scale: 0 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0 },
+} satisfies Omit<MotionProps, 'children' | 'transition'>;
+
+// Strongly-typed base transition so `type` stays a literal (not widened to string).
+const baseTransition: Transition = {
+  type: 'spring',
+  stiffness: 675,
+  damping: 75,
+  mass: 1,
 };
 
 const classNames = {
@@ -103,21 +99,26 @@ export function MediaTiles({ chatOpen }: MediaTilesProps) {
   const isScreenShareEnabled = screenShareTrack && !screenShareTrack.publication.isMuted;
   const hasSecondTile = isCameraEnabled || isScreenShareEnabled;
 
-  const transition = {
-    ...animationProps.transition,
+  // Delay is dynamic, but the shape & 'type' literal remain correct.
+  const transition: Transition = {
+    ...baseTransition,
     delay: chatOpen ? 0 : 0.15, // delay on close
   };
-  const agentAnimate = {
+
+  const agentAnimate: MotionProps['animate'] = {
     ...animationProps.animate,
+    // When chat is closed, scale up the agent tile
     scale: chatOpen ? 1 : 3,
     transition,
   };
-  const avatarAnimate = {
+
+  const avatarAnimate: MotionProps['animate'] = {
     ...animationProps.animate,
     transition,
   };
-  const agentLayoutTransition = transition;
-  const avatarLayoutTransition = transition;
+
+  const agentLayoutTransition: Transition = transition;
+  const avatarLayoutTransition: Transition = transition;
 
   const isAvatar = agentVideoTrack !== undefined;
 
@@ -182,10 +183,7 @@ export function MediaTiles({ chatOpen }: MediaTilesProps) {
                   layoutId="camera"
                   {...animationProps}
                   trackRef={cameraTrack}
-                  transition={{
-                    ...animationProps.transition,
-                    delay: chatOpen ? 0 : 0.15,
-                  }}
+                  transition={{ ...transition }}
                   className="h-[90px]"
                 />
               )}
@@ -197,10 +195,7 @@ export function MediaTiles({ chatOpen }: MediaTilesProps) {
                   layoutId="screen"
                   {...animationProps}
                   trackRef={screenShareTrack}
-                  transition={{
-                    ...animationProps.transition,
-                    delay: chatOpen ? 0 : 0.15,
-                  }}
+                  transition={{ ...transition }}
                   className="h-[90px]"
                 />
               )}

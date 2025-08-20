@@ -7,17 +7,15 @@ import { RoomAudioRenderer, RoomContext, StartAudio } from '@livekit/components-
 import { toastAlert } from '@/components/alert-toast';
 import { Toaster } from 'sonner';
 
-// 👇 import the component + its props type
-import { SessionView, type SessionViewComponentProps } from '@/components/session-view';
-// If Welcome has typed props, import them too:
+import { SessionView } from '@/components/session-view';
 import { Welcome } from '@/components/welcome';
 
 import useConnectionDetails from '@/hooks/useConnectionDetails';
 import type { AppConfig } from '@/lib/types';
 
-// ✅ Give motion.create your prop types so `language` and handlers are allowed
+// Only motion-wrap Welcome (or even skip it if you like)
+// If you keep it, you can let Motion infer props.
 const MotionWelcome = motion.create(Welcome);
-const MotionSessionView = motion.create<SessionViewComponentProps>(SessionView);
 
 interface AppProps {
   appConfig: AppConfig;
@@ -27,7 +25,6 @@ export function App({ appConfig }: AppProps) {
   const room = useMemo(() => new Room(), []);
   const [sessionStarted, setSessionStarted] = useState(false);
 
-  // Language state
   const [language, setLanguage] = useState<'en' | 'kn' | 'hi'>('en');
 
   const handleLanguageChange = (lang: 'en' | 'kn' | 'hi') => {
@@ -108,16 +105,20 @@ export function App({ appConfig }: AppProps) {
         <RoomAudioRenderer />
         <StartAudio label="Start Audio" />
 
-        <MotionSessionView
+        {/* ✅ Wrap the custom component in a motion.div container */}
+        <motion.div
           key="session-view"
-          appConfig={appConfig}
-          disabled={!sessionStarted}
-          sessionStarted={sessionStarted}
-          language={language}
           initial={{ opacity: 0 }}
           animate={{ opacity: sessionStarted ? 1 : 0 }}
           transition={{ duration: 0.5, ease: 'linear', delay: sessionStarted ? 0.5 : 0 }}
-        />
+        >
+          <SessionView
+            appConfig={appConfig}
+            disabled={!sessionStarted}
+            sessionStarted={sessionStarted}
+            language={language}
+          />
+        </motion.div>
       </RoomContext.Provider>
 
       <Toaster />
