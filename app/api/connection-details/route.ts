@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { AccessToken, type AccessTokenOptions, type VideoGrant } from 'livekit-server-sdk';
 
-// NOTE: you are expected to define the following environment variables in `.env.local`:
-const API_KEY = process.env.LIVEKIT_API_KEY;
-const API_SECRET = process.env.LIVEKIT_API_SECRET;
-const LIVEKIT_URL = process.env.LIVEKIT_URL;
+const API_KEY = process.env.LIVEKIT_API_KEY!;
+const API_SECRET = process.env.LIVEKIT_API_SECRET!;
+const LIVEKIT_URL = process.env.LIVEKIT_URL!;
 
-// don't cache the results
 export const revalidate = 0;
 
 export type ConnectionDetails = {
@@ -16,51 +14,42 @@ export type ConnectionDetails = {
   participantToken: string;
 };
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    if (LIVEKIT_URL === undefined) {
-      throw new Error('LIVEKIT_URL is not defined');
-    }
-    if (API_KEY === undefined) {
-      throw new Error('LIVEKIT_API_KEY is not defined');
-    }
-    if (API_SECRET === undefined) {
-      throw new Error('LIVEKIT_API_SECRET is not defined');
-    }
+    if (!LIVEKIT_URL) throw new Error('LIVEKIT_URL is not defined');
 
-    // Generate participant token
+    const language = new URL(req.url).searchParams.get('language') ?? 'en';
+
     const participantName = 'user';
     const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
-    const participantToken = await createParticipantToken(
-      { identity: participantIdentity, name: participantName },
-      roomName
-    );
 
-    // Return connection details
-    const data: ConnectionDetails = {
-      serverUrl: LIVEKIT_URL,
-      roomName,
-      participantToken: participantToken,
-      participantName,
-    };
-    const headers = new Headers({
-      'Cache-Control': 'no-store',
-    });
-    return NextResponse.json(data, { headers });
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error(error);
-      return new NextResponse(error.message, { status: 500 });
-    }
+    const participantToken = await createParticipantToken(
+      {
+        identity: participantIdentity,
+        name: participantName,
+        metadata: JSON.stringify({ language }),
+      },
+      roomName
+    ); // ← no trailing comma here
+
+    return NextResponse.json(
+      {
+        serverUrl: LIVEKIT_URL,
+        roomName,
+        participantToken,
+        participantName,
+      } satisfies ConnectionDetails,
+      { headers: { 'Cache-Control': 'no-store' } } // ← no trailing comma here
+    );
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Unknown error';
+    return new NextResponse(message, { status: 500 });
   }
 }
 
 function createParticipantToken(userInfo: AccessTokenOptions, roomName: string) {
-  const at = new AccessToken(API_KEY, API_SECRET, {
-    ...userInfo,
-    ttl: '15m',
-  });
+  const at = new AccessToken(API_KEY, API_SECRET, { ...userInfo, ttl: '15m' });
   const grant: VideoGrant = {
     room: roomName,
     roomJoin: true,

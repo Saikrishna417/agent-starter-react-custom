@@ -1,33 +1,29 @@
 import { useCallback } from 'react';
-import { ConnectionDetails } from '@/app/api/connection-details/route';
+import type { ConnectionDetails } from '@/app/api/connection-details/route';
+
+export type Language = 'en' | 'kn' | 'hi';
 
 export default function useConnectionDetails() {
-  // Generate room connection details, including:
-  //   - A random Room name
-  //   - A random Participant name
-  //   - An Access Token to permit the participant to join the room
-  //   - The URL of the LiveKit server to connect to
-  //
-  // In real-world application, you would likely allow the user to specify their
-  // own participant name, and possibly to choose from existing rooms to join.
+  // Pass the selected language to the token endpoint
+  const fetchConnectionDetails = useCallback(
+    async (language: Language = 'en'): Promise<ConnectionDetails> => {
+      const url = new URL(
+        process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details',
+        window.location.origin
+      );
+      url.searchParams.set('language', language);
 
-  const fetchConnectionDetails = useCallback(async () => {
-    const url = new URL(
-      process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details',
-      window.location.origin
-    );
-
-    let data: ConnectionDetails;
-    try {
-      const res = await fetch(url.toString());
-      data = await res.json();
-    } catch (error) {
-      console.error('Error fetching connection details:', error);
-      throw new Error('Error fetching connection details!');
-    }
-
-    return data;
-  }, []);
+      try {
+        const res = await fetch(url.toString(), { method: 'GET', cache: 'no-store' });
+        if (!res.ok) throw new Error(await res.text());
+        return (await res.json()) as ConnectionDetails;
+      } catch (error) {
+        console.error('Error fetching connection details:', error);
+        throw new Error('Error fetching connection details!');
+      }
+    },
+    []
+  );
 
   return { fetchConnectionDetails };
 }

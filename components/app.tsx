@@ -61,7 +61,7 @@ export function App({ appConfig }: AppProps) {
         room.localParticipant.setMicrophoneEnabled(true, undefined, {
           preConnectBuffer: appConfig.isPreConnectBufferEnabled,
         }),
-        fetchConnectionDetails().then(async (connectionDetails) => {
+        fetchConnectionDetails(language).then(async (connectionDetails) => {
           await room.connect(connectionDetails.serverUrl, connectionDetails.participantToken);
           try {
             room.localParticipant.setMetadata(JSON.stringify({ language }));
